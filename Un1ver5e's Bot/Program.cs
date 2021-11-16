@@ -15,12 +15,6 @@ namespace Un1ver5e.Bot
 {
     public static class Program
     {
-
-        /// <summary>
-        /// The path to bot's files, including the folder itself
-        /// </summary>
-        public readonly static string BotFilesPath = "\\.botFiles\\";
-
         /// <summary>
         /// The main DiscordClient object, all the code is recommended to use this one
         /// </summary>
@@ -42,7 +36,7 @@ namespace Un1ver5e.Bot
         //The underlying block is the Main code
         private static async Task MainTask(string[] args)
         {
-            Task.Run(() => AlwaysUpdateStatus());
+            _ = Task.Run(() => AlwaysUpdateStatus());
             
             Client = new DiscordClient(new DiscordConfiguration
             {
@@ -104,11 +98,11 @@ namespace Un1ver5e.Bot
             while (true)
             {
                 mem = $"Currentry using {GC.GetTotalMemory(false) / 1048576} MBs.";
-                time = $"Online for {timer.Elapsed}";
+                time = $"Online for {timer.Elapsed.ToString()[0..8]}";
 
                 Console.Title = $"{mem} || {time} || {splash}";
 
-                Task.Delay(1000).Wait();
+                Task.Delay(500).Wait();
             }
         }
     }

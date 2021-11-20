@@ -4,6 +4,8 @@ using DSharpPlus.Entities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Un1ver5e.Service;
@@ -21,7 +23,8 @@ namespace Un1ver5e.Bot
         {
             var dmb = new DiscordMessageBuilder()
                 .WithContent(ctx.User.Mention + ", ПОШЕЛ НАХУЙ");
-            await ctx.RespondAsync(dmb);
+            await ctx.Channel.SendMessageAsync(dmb);
+            await ctx.Message.DeleteAsync();
         }
 
         [Command("fuck"), RequireGuild(), Description("Уникальная возможность послать человека нахуй.")]
@@ -30,7 +33,8 @@ namespace Un1ver5e.Bot
             if (member.IsCurrent) member = ctx.Member;
             var dmb = new DiscordMessageBuilder()
                 .WithContent(member.Mention + ", ПОШЕЛ НАХУЙ");
-            await ctx.RespondAsync(dmb);
+            await ctx.Channel.SendMessageAsync(dmb);
+            await ctx.Message.DeleteAsync();
         }
 
         [Command("rnd"), Aliases("random"), Description("Выдает случайное число между двумя данными числами включительно.")]
@@ -40,7 +44,7 @@ namespace Un1ver5e.Bot
             else await ctx.RespondAsync($"Ваше число - {Service.Generals.Random.Next(min, max + 1)}".FormatAs());
         }
 
-        [Command("pivo"), Aliases("beer"), RequireGuild(), Description("Позволяет бахнуть пивка с кем-то. Не жизнь а сказка.")]
+        [Command("pivo"), Aliases("beer", "пиво"), RequireGuild(), Description("Позволяет бахнуть пивка с кем-то. Не жизнь а сказка.")]
         public async Task Beer(CommandContext ctx, DiscordMember member)
         {
             var btnYes = new DiscordButtonComponent(DSharpPlus.ButtonStyle.Success, "beerYes", "КОНЕЧНО");
@@ -74,7 +78,7 @@ namespace Un1ver5e.Bot
             }
         }
 
-        [Command("smoke"), RequireGuild(), Description("Позволяет выйти покурить с кем-то. Не жизнь а сказка.")]
+        [Command("smoke"), Aliases("покурить"), RequireGuild(), Description("Позволяет выйти покурить с кем-то. Не жизнь а сказка.")]
         public async Task Smoke(CommandContext ctx, DiscordMember member)
         {
             var btnYes = new DiscordButtonComponent(DSharpPlus.ButtonStyle.Success, "smokeYes", "КОНЕЧНО");
@@ -125,6 +129,41 @@ namespace Un1ver5e.Bot
         {
             await ctx.Message.CreateReactionAsync(DiscordEmoji.FromName(Program.Client, ":white_check_mark:"));
             Process.Start("explorer", Service.Generals.BotFilesPath);
+        }
+
+        [Command("randomcat"), Aliases("cat", "кот", "котик"), Description("То, о чем вы мечтали.")]
+        public async Task RandomCat(CommandContext ctx)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                string path = $"{Generals.BotFilesPath}\\.temp\\{DateTime.Now.Ticks}.jpg";
+                File.WriteAllBytes(path, client.GetByteArrayAsync("https://thiscatdoesnotexist.com/").Result);
+                using (var stream = new FileStream(path, FileMode.Open))
+                {
+                    await ctx.RespondAsync(new DiscordMessageBuilder().WithFile(stream));
+                }
+                File.Delete(path);
+            }
+        }
+
+        [Command("Vitya"), Aliases("Витя"), Description("ЭТО ЖЕ ОН.")]
+        public async Task Vitya(CommandContext ctx)
+        {
+            string path = Directory.GetFiles($"{Generals.BotFilesPath}\\Gallery\\Витя").GetRandom();
+            using (var stream = new FileStream(path, FileMode.Open))
+            {
+                await ctx.RespondAsync(new DiscordMessageBuilder().WithFile(stream));
+            }
+        }
+
+        [Command("leshka"), Aliases("лешка"), Description("ЭТО ЖЕ ОН.")]
+        public async Task Leshka(CommandContext ctx)
+        {
+            string path = Directory.GetFiles($"{Generals.BotFilesPath}\\Gallery\\Лешка").GetRandom();
+            using (var stream = new FileStream(path, FileMode.Open))
+            {
+                await ctx.RespondAsync(new DiscordMessageBuilder().WithFile(stream));
+            }
         }
     }
 

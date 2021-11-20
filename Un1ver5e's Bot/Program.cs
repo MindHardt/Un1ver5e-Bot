@@ -53,7 +53,7 @@ namespace Un1ver5e.Bot
             );
             CommandsNext = Client.UseCommandsNext(new CommandsNextConfiguration
             {
-                StringPrefixes = new[] { "mo " }
+                StringPrefixes = new[] { "mo ", "мо" }
             }
             );
 

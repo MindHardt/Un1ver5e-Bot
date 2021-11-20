@@ -37,10 +37,11 @@ namespace Un1ver5e.Bot
         private static async Task MainTask(string[] args)
         {
             _ = Task.Run(() => AlwaysUpdateStatus());
-            
+
+            File.Decrypt($"{Generals.BotFilesPath}\\token.txt");
             Client = new DiscordClient(new DiscordConfiguration
             {
-                Token = File.ReadAllText(Generals.BotFilesPath + "\\token.txt"),
+                Token = File.ReadAllText($"{Generals.BotFilesPath}\\token.txt"),
                 TokenType = TokenType.Bot,
                 MinimumLogLevel = LogLevel.Debug
             }
@@ -56,6 +57,7 @@ namespace Un1ver5e.Bot
                 StringPrefixes = new[] { "mo ", "мо" }
             }
             );
+            File.Encrypt($"{Generals.BotFilesPath}\\token.txt");
 
             await Tag.Initialize();
 

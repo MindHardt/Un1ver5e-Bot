@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 
 namespace Un1ver5e.Service
 {
@@ -10,6 +11,13 @@ namespace Un1ver5e.Service
     /// </summary>
     public static class Generals
     {
+
+        public readonly static JsonSerializerOptions JsonOptions = new JsonSerializerOptions()
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            IgnoreNullValues = false
+        };
         /// <summary>
         /// The main WebClient object.
         /// </summary>
@@ -20,6 +28,7 @@ namespace Un1ver5e.Service
         /// </summary>
         public static readonly Random Random = new Random();
 
-        public readonly static string BotFilesPath = "C:\\Users\\igorb\\Desktop\\BotFiles";
+        //public readonly static string BotFilesPath = "\\..\\..\\..\\..\\BotFiles";
+        public readonly static string BotFilesPath = "..\\..\\..\\..\\BotFiles";
     }
 }

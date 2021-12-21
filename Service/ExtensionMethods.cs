@@ -23,6 +23,30 @@ namespace Un1ver5e.Service
         public static T GetRandom<T>(this IEnumerable<T> collection, Random randomizer) => collection.ElementAt(randomizer.Next(0, collection.Count()));
 
         /// <summary>
+        /// Gets a random element from specified collection.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collection">The source enumerable</param>
+        /// <returns></returns>
+        public static T GetRandom<T>(this IEnumerable<T> collection, out int index)
+        {
+            index = Generals.Random.Next(0, collection.Count());
+            return collection.ElementAt(index);
+        }
+
+        /// <summary>
+        /// Gets a random element from specified collection.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collection">The source enumerable</param>
+        /// <returns></returns>
+        public static T GetRandom<T>(this IEnumerable<T> collection, Random randomizer, out int index)
+        {
+            index = randomizer.Next(0, collection.Count());
+            return collection.ElementAt(index);
+        }
+
+        /// <summary>
         /// Shuffles the IEnumerable, making it random order.
         /// </summary>
         /// <typeparam name="T"></typeparam>

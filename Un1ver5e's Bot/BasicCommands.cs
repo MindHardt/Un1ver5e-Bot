@@ -1,23 +1,42 @@
-﻿using DSharpPlus.CommandsNext;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Un1ver5e.Bot.BoardGames;
 using Un1ver5e.Service;
 
 namespace Un1ver5e.Bot
 {
     public static class Features
     {
+        public static class LeaversRestoration
+        {
+            public static readonly Dictionary<DiscordGuild, DSharpPlus.EventArgs.GuildMemberRemoveEventArgs> LatestLeaves = new Dictionary<DiscordGuild, DSharpPlus.EventArgs.GuildMemberRemoveEventArgs>();
+            public static async Task OnMemberRemoved(DiscordClient client, DSharpPlus.EventArgs.GuildMemberRemoveEventArgs e)
+            {
+                var msg = await e.Guild.GetDefaultChannel().SendMessageAsync($"{e.Member.DisplayName} вышел с сервера. Чтобы сохранить его роли, используйте mo save_leaver.".FormatAs());
+                if (LatestLeaves.ContainsKey(e.Guild)) LatestLeaves.Remove(e.Guild);
+                LatestLeaves.Add(e.Guild, e);
+            }
+        }
         public static DiscordEmbedBuilder Forbidden { get => new DiscordEmbedBuilder().WithImageUrl("https://cdn.discordapp.com/attachments/751088503877795981/906989457775947786/i.png");  }
     }
     public class BasicCommands : BaseCommandModule
     {
+        [Command("pidoras"), Aliases("пидорас"), Description("C'mon, try it.")]
+        public async Task Pidoras(CommandContext ctx)
+        {
+            await ctx.Channel.SendMessageAsync($"{ctx.Member.DisplayName} сам пидорас.");
+        }
         [Command("fuck"), Description("Уникальная возможность пойти нахуй.")]
         public async Task Fuck(CommandContext ctx)
         {
@@ -149,10 +168,28 @@ namespace Un1ver5e.Bot
         [Command("Vitya"), Aliases("Витя"), Description("ЭТО ЖЕ ОН.")]
         public async Task Vitya(CommandContext ctx)
         {
-            string path = Directory.GetFiles($"{Generals.BotFilesPath}\\Gallery\\Витя").GetRandom();
+            int index;
+            string[] files = Directory.GetFiles($"{Generals.BotFilesPath}\\Gallery\\Витя");
+            string path = files.GetRandom(out index);
             using (var stream = new FileStream(path, FileMode.Open))
             {
-                await ctx.RespondAsync(new DiscordMessageBuilder().WithFile(stream));
+                await ctx.RespondAsync(new DiscordMessageBuilder().WithContent($"{index + 1}/{files.Length}").WithFile(stream));
+            }
+        }
+
+        [Command("Vitya")]
+        public async Task Vitya(CommandContext ctx, int index)
+        {
+            index--;
+            string[] files = Directory.GetFiles($"{Generals.BotFilesPath}\\Gallery\\Витя");
+            if (index < 0 || index >= files.Length) await ctx.RespondAsync("Слишком большое число!".FormatAs());
+            else
+            {
+                string path = files[index];
+                using (var stream = new FileStream(path, FileMode.Open))
+                {
+                    await ctx.RespondAsync(new DiscordMessageBuilder().WithContent($"{index + 1}/{files.Length}").WithFile(stream));
+                }
             }
         }
 
@@ -164,6 +201,46 @@ namespace Un1ver5e.Bot
             {
                 await ctx.RespondAsync(new DiscordMessageBuilder().WithFile(stream));
             }
+        }
+
+        [Command("save_leaver"), Aliases("s_l"), Description("Сохраняет роль ливера с сервера, чтобы восстановить")]
+        public async Task SaveLeaver(CommandContext ctx)
+        {
+            await ctx.RespondAsync("СЫСЬ".FormatAs());
+            var e = Features.LeaversRestoration.LatestLeaves[ctx.Guild];
+            string folderPath = $"{Generals.BotFilesPath}\\SavedLeavers\\{e.Guild.Id}";
+            Directory.CreateDirectory(folderPath);
+            await File.WriteAllLinesAsync($"{folderPath}\\{e.Member.Id}", e.Member.Roles.Select(r => r.Id.ToString()));
+        }
+        [Command("test"), Description("lorem ipsum"), RequireGuild()]
+        public async Task Test(CommandContext ctx)
+        {
+            
+        }
+    }
+
+    public static class CommandsBasis
+    {
+        public static async Task CmdErroredHandler(CommandsNextExtension _, CommandErrorEventArgs e)
+        {
+            var failedChecks = ((ChecksFailedException)e.Exception).FailedChecks;
+            var sb = new StringBuilder(e.Exception.Message + "\n\n");
+            foreach (var failedCheck in failedChecks)
+            {
+                if (failedCheck is RequireAccessLevel) await e.Context.RespondAsync("⚠ В доступе отказано.".FormatAs());
+            }
+        }
+    }
+
+    /// <summary>
+    /// Defines that the command is only usable if called in a respond message.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+    public class RequireAccessLevel : CheckBaseAttribute
+    {
+        public override Task<bool> ExecuteCheckAsync(CommandContext ctx, bool help)
+        {
+            return Task.FromResult(ctx.Message.ReferencedMessage != null || help);
         }
     }
 

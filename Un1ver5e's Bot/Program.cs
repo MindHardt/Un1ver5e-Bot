@@ -38,12 +38,12 @@ namespace Un1ver5e.Bot
         {
             _ = Task.Run(() => AlwaysUpdateStatus());
 
-            File.Decrypt($"{Generals.BotFilesPath}\\token.txt");
             Client = new DiscordClient(new DiscordConfiguration
             {
-                Token = File.ReadAllText($"{Generals.BotFilesPath}\\token.txt"),
+                Token = File.ReadAllText($"{Generals.BotFilesPath}\\Token.txt"),
                 TokenType = TokenType.Bot,
-                MinimumLogLevel = LogLevel.Debug
+                MinimumLogLevel = LogLevel.Debug,
+                Intents = DiscordIntents.All
             }
             );
             Interactivity = Client.UseInteractivity(new InteractivityConfiguration
@@ -57,7 +57,8 @@ namespace Un1ver5e.Bot
                 StringPrefixes = new[] { "mo ", "мо" }
             }
             );
-            File.Encrypt($"{Generals.BotFilesPath}\\token.txt");
+
+            CommandsNext.CommandErrored += CommandsBasis.CmdErroredHandler;
 
             await Tag.Initialize();
 
@@ -66,6 +67,8 @@ namespace Un1ver5e.Bot
             CommandsNext.RegisterCommands<BoardGamesBase.BoardGamesCommands>();
             CommandsNext.RegisterCommands<BoardGames.Codenames.CodenamesCommands>();
             CommandsNext.RegisterCommands<BoardGames.Resistance.ResistanceCommands>();
+
+            Client.GuildMemberRemoved += Features.LeaversRestoration.OnMemberRemoved;
 
             Client.ComponentInteractionCreated += async (s, e) =>
             {

@@ -4,9 +4,10 @@ using DSharpPlus.Entities;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace Un1ver5e.Bot
+namespace Un1ver5e.Bot.BoardGames
 {
     public static class BoardGamesBase
     {
@@ -59,15 +60,8 @@ namespace Un1ver5e.Bot
         /// Saves the channels from memory to file.
         /// </summary>
         /// <returns></returns>
-        public static async Task SaveChannels()
-        {
-            var channels = new List<string>();
-            foreach (var channel in BGChannels)
-            {
-                channels.Add(channel.Key.Id.ToString() + " " + channel.Value.Id.ToString());
-            }
-            await File.WriteAllLinesAsync(Service.Generals.BotFilesPath + "\\BGs\\BGChannels.txt", channels);
-        }
+        public static async Task SaveChannels() =>
+            await File.WriteAllLinesAsync(Service.Generals.BotFilesPath + "\\BGs\\BGChannels.txt", BGChannels.Select(c => c.Key.Id.ToString() + " " + c.Value.Id.ToString()));
 
         /// <summary>
         /// Checks whether guild has a board game channel.
@@ -81,12 +75,12 @@ namespace Un1ver5e.Bot
         /// </summary>
         public abstract class BoardGame
         {
-            public DiscordChannel RootChannel { get; protected set; }
-            public DiscordThreadChannel ThreadChannel { get; protected set; }
-            public DiscordMember Players { get; protected set; }
+            public DiscordChannel Channel { get; protected set; }
+            public DiscordMember[] Players { get; protected set; }
             public abstract void Start();
             public abstract void End();
         }
+
         public partial class BoardGamesCommands : BaseCommandModule
         {
             [Command("bg_init"), RequireGuild(), RequirePermissions(DSharpPlus.Permissions.Administrator)]
@@ -103,7 +97,7 @@ namespace Un1ver5e.Bot
                             {
                                 new DiscordSelectComponentOption("Использовать этот канал", "this"),
                                 new DiscordSelectComponentOption("Создать новый канал", "new"),
-                                new DiscordSelectComponentOption("Отмена", "abort")
+                                new DiscordSelectComponentOption("Отмена", "cancel")
                             }
                             )
                         )
@@ -116,7 +110,7 @@ namespace Un1ver5e.Bot
                         new TimeSpan(0, 1, 0)
                         );
 
-                if (option.Result.TimedOut || option.Result.Result.Values[0] == "abort")
+                if (option.Result.TimedOut || option.Result.Result.Values[0] == "cancel")
                 {
                     await msg.RespondAsync("Вы можете настроить модуль настолок позже.");
                 }
